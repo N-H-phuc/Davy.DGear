@@ -1,11 +1,23 @@
-function App() {
+import Header from "./components/Header";
+import Banner from "./components/Banner";
+import FeatureSection from "./components/FeatureSection";
+import Footer from "./components/Footer";
+
+const App = () => {
   return (
     <>
-      <h1>ShopHub</h1>
-      <h2>Student: Nguyễn Hoàng Phúc</h2>
-      <h3>Date: 2026-06-18</h3>
+      <Header title="ShopHub" />
+
+      <Banner subtitle="Welcome to ShopHub" buttonText="Shop Now" />
+
+      <FeatureSection />
+
+      <Footer
+        studentName="Nguyen Hoang Phuc"
+        courseName="Full-Stack Web Development"
+      />
     </>
   );
-}
+};
 
 export default App;
