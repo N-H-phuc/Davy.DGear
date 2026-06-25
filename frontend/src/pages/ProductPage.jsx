@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import { productsApi } from "../api/productsApi";
 import ProductList from "../components/ProductList";
 
 function ProductPage() {
@@ -21,25 +21,19 @@ function ProductPage() {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await axios.get("http://127.0.0.1:8000/products");
+        const data = await productsApi.getAll();
 
-        const data = res.data.items.map((item) => ({
+        const mappedProducts = data.items.map((item) => ({
           id: item.id,
-
-          name: item.title,
-
+          name: item.name,
           price: item.price,
-
           category: item.category,
-
-          imageUrl: item.image,
-
           description: item.description,
+          imageUrl: item.imageUrl,
         }));
 
-        setProducts(res.data.items);
-
-        setFilteredProducts(res.data.items);
+        setProducts(mappedProducts);
+        setFilteredProducts(mappedProducts);
       } catch (err) {
         setError("Load product failed");
       } finally {
