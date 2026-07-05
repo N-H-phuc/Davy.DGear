@@ -1,0 +1,274 @@
+
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+
+from database import get_db
+
+from models.order import OrderDB
+from models.order_item import OrderItemDB
+from models.product import ProductDB
+
+from schemas.order import (
+    OrderCreate,
+    OrderRead,
+    OrderItemRead,
+)
+
+router = APIRouter(
+    prefix="/orders",
+    tags=["Orders"],
+)
+
+
+# ==========================
+# GET ALL ORDERS
+# ==========================
+
+@router.get(
+    "",
+    response_model=list[OrderRead],
+)
+def get_orders(
+    db: Session = Depends(get_db),
+):
+
+    orders = db.query(OrderDB).all()
+
+    result = []
+
+    for order in orders:
+
+        items = []
+
+        for item in order.items:
+
+            items.append(
+                OrderItemRead(
+                    id=item.id,
+                    product_id=item.product_id,
+                    quantity=item.quantity,
+                    price=item.price,
+                )
+            )
+
+        result.append(
+            OrderRead(
+                id=order.id,
+                user_id=order.user_id,
+                full_name=order.full_name,
+                phone=order.phone,
+                address=order.address,
+                payment_method=order.payment_method,
+                total_price=order.total_price,
+                status=order.status,
+                created_at=order.created_at,
+                items=items,
+            )
+        )
+
+    return result
+
+
+# ==========================
+# GET ORDER BY ID
+# ==========================
+
+@router.get(
+    "/{order_id}",
+    response_model=OrderRead,
+)
+def get_order(
+    order_id: int,
+    db: Session = Depends(get_db),
+):
+
+    order = (
+        db.query(OrderDB)
+        .filter(OrderDB.id == order_id)
+        .first()
+    )
+
+    if not order:
+        raise HTTPException(
+            status_code=404,
+            detail="Order not found",
+        )
+
+    items = []
+
+    for item in order.items:
+
+        items.append(
+            OrderItemRead(
+                id=item.id,
+                product_id=item.product_id,
+                quantity=item.quantity,
+                price=item.price,
+            )
+        )
+
+    return OrderRead(
+        id=order.id,
+        user_id=order.user_id,
+        full_name=order.full_name,
+        phone=order.phone,
+        address=order.address,
+        payment_method=order.payment_method,
+        total_price=order.total_price,
+        status=order.status,
+        created_at=order.created_at,
+        items=items,
+    )
+
+
+# ==========================
+# CREATE ORDER (CHECKOUT)
+# ==========================
+
+@router.post(
+    "",
+    response_model=OrderRead,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_order(
+    payload: OrderCreate,
+    db: Session = Depends(get_db),
+):
+
+    order = OrderDB(
+        user_id=payload.user_id,
+        full_name=payload.full_name,
+        phone=payload.phone,
+        address=payload.address,
+        payment_method=payload.payment_method,
+        total_price=payload.total_price,
+    )
+
+    db.add(order)
+    db.commit()
+    db.refresh(order)
+
+    items = []
+
+    for item in payload.items:
+
+        product = (
+            db.query(ProductDB)
+            .filter(ProductDB.id == item.product_id)
+            .first()
+        )
+
+        if not product:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Product {item.product_id} not found",
+            )
+
+        # Kiểm tra tồn kho
+        if product.stock < item.quantity:
+            raise HTTPException(
+                status_code=400,
+                detail=f"{product.name} only has {product.stock} item(s) left in stock.",
+            )
+
+        # Lưu OrderItem
+        order_item = OrderItemDB(
+            order_id=order.id,
+            product_id=item.product_id,
+            quantity=item.quantity,
+            price=item.price,
+        )
+
+        db.add(order_item)
+
+        # Cập nhật Sold và Stock
+        product.sold += item.quantity
+        product.stock -= item.quantity
+
+        items.append(
+            OrderItemRead(
+                id=0,
+                product_id=item.product_id,
+                quantity=item.quantity,
+                price=item.price,
+            )
+        )
+
+    db.commit()
+    db.refresh(order)
+
+    return OrderRead(
+        id=order.id,
+        user_id=order.user_id,
+        full_name=order.full_name,
+        phone=order.phone,
+        address=order.address,
+        payment_method=order.payment_method,
+        total_price=order.total_price,
+        status=order.status,
+        created_at=order.created_at,
+        items=items,
+    )
+
+
+# ==========================
+# UPDATE ORDER STATUS
+# ==========================
+
+@router.put("/{order_id}/status")
+def update_status(
+    order_id: int,
+    status_value: str,
+    db: Session = Depends(get_db),
+):
+
+    order = (
+        db.query(OrderDB)
+        .filter(OrderDB.id == order_id)
+        .first()
+    )
+
+    if not order:
+        raise HTTPException(
+            status_code=404,
+            detail="Order not found",
+        )
+
+    order.status = status_value
+
+    db.commit()
+
+    return {
+        "message": "Order status updated"
+    }
+
+
+# ==========================
+# DELETE ORDER
+# ==========================
+
+@router.delete(
+    "/{order_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_order(
+    order_id: int,
+    db: Session = Depends(get_db),
+):
+
+    order = (
+        db.query(OrderDB)
+        .filter(OrderDB.id == order_id)
+        .first()
+    )
+
+    if not order:
+        raise HTTPException(
+            status_code=404,
+            detail="Order not found",
+        )
+
+    db.delete(order)
+
+    db.commit()
+

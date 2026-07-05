@@ -23,7 +23,6 @@ function UserForm({ onSuccess, editingUser, setEditingUser }) {
   const handleChange = (e) => {
     setFormData({
       ...formData,
-
       [e.target.name]: e.target.value,
     });
   };
@@ -63,53 +62,101 @@ function UserForm({ onSuccess, editingUser, setEditingUser }) {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: "10px",
-        width: "300px",
-      }}
-    >
-      <h3>{editingUser ? "Edit User" : "Add User"}</h3>
+    <div className="bg-white rounded-2xl shadow-lg p-8 max-w-md">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6">
+        {editingUser ? "✏️ Edit User" : "➕ Add New User"}
+      </h2>
 
-      <input
-        name="email"
-        placeholder="Email"
-        value={formData.email}
-        onChange={handleChange}
-      />
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div>
+          <label className="block mb-2 font-medium text-gray-700">Email</label>
 
-      <input
-        name="full_name"
-        placeholder="Full name"
-        value={formData.full_name}
-        onChange={handleChange}
-      />
+          <input
+            name="email"
+            type="email"
+            placeholder="Enter email"
+            value={formData.email}
+            onChange={handleChange}
+            className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            required
+          />
+        </div>
 
-      <input
-        name="password"
-        type="password"
-        placeholder="Password"
-        value={formData.password}
-        onChange={handleChange}
-      />
+        <div>
+          <label className="block mb-2 font-medium text-gray-700">
+            Full Name
+          </label>
 
-      <select name="role" value={formData.role} onChange={handleChange}>
-        <option value="customer">Customer</option>
+          <input
+            name="full_name"
+            placeholder="Enter full name"
+            value={formData.full_name}
+            onChange={handleChange}
+            className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            required
+          />
+        </div>
 
-        <option value="admin">Admin</option>
-      </select>
+        <div>
+          <label className="block mb-2 font-medium text-gray-700">
+            Password
+          </label>
 
-      <button>{editingUser ? "Update" : "Add"}</button>
+          <input
+            name="password"
+            type="password"
+            placeholder={
+              editingUser ? "Leave blank if unchanged" : "Enter password"
+            }
+            value={formData.password}
+            onChange={handleChange}
+            className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          />
+        </div>
 
-      {editingUser && (
-        <button type="button" onClick={() => setEditingUser(null)}>
-          Cancel
-        </button>
-      )}
-    </form>
+        <div>
+          <label className="block mb-2 font-medium text-gray-700">Role</label>
+
+          <select
+            name="role"
+            value={formData.role}
+            onChange={handleChange}
+            className="w-full border rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          >
+            <option value="customer">Customer</option>
+            <option value="admin">Admin</option>
+          </select>
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            type="submit"
+            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition"
+          >
+            {editingUser ? "Update User" : "Add User"}
+          </button>
+
+          {editingUser && (
+            <button
+              type="button"
+              onClick={() => {
+                setEditingUser(null);
+
+                setFormData({
+                  email: "",
+                  full_name: "",
+                  password: "",
+                  role: "customer",
+                });
+              }}
+              className="px-6 bg-gray-500 hover:bg-gray-600 text-white rounded-xl transition"
+            >
+              Cancel
+            </button>
+          )}
+        </div>
+      </form>
+    </div>
   );
 }
 

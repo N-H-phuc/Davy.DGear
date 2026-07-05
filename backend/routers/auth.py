@@ -6,6 +6,15 @@ from models.user import UserDB
 from schemas.user import LoginRequest
 from utils.security import verify_password, create_token
 
+
+from schemas.auth import RegisterRequest
+from utils.security import (
+    verify_password,
+    create_token,
+    hash_password,
+)
+
+
 router = APIRouter(
     prefix="/auth",
     tags=["Auth"]
@@ -62,4 +71,41 @@ def login(
             "full_name": user.full_name,
             "role": user.role
         }
+    }
+
+# ==========================
+# REGISTER
+# ==========================
+@router.post("/register")
+def register(
+    payload: RegisterRequest,
+    db: Session = Depends(get_db)
+):
+    # Kiểm tra email đã tồn tại
+    user = (
+        db.query(UserDB)
+        .filter(UserDB.email == payload.email)
+        .first()
+    )
+
+    if user:
+        raise HTTPException(
+            status_code=400,
+            detail="Email already exists"
+        )
+
+    # Tạo tài khoản mới
+    new_user = UserDB(
+        email=payload.email,
+        full_name=payload.full_name,
+        password_hash=hash_password(payload.password),
+        role="customer"
+    )
+
+    db.add(new_user)
+    db.commit()
+    db.refresh(new_user)
+
+    return {
+        "message": "Register successfully"
     }
