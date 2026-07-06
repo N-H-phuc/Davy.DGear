@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-
+from schemas.user import UserUpdate
 from database import get_db
 
 from models.user import UserDB
@@ -230,3 +230,44 @@ def delete_user(
     db.delete(user)
 
     db.commit()
+
+# profile
+from schemas.user import ChangePasswordRequest
+from utils.security import verify_password, hash_password
+
+@router.put("/{user_id}/change-password")
+def change_password(
+    user_id: int,
+    payload: ChangePasswordRequest,
+    db: Session = Depends(get_db),
+):
+    user = (
+        db.query(UserDB)
+        .filter(UserDB.id == user_id)
+        .first()
+    )
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    if not verify_password(
+        payload.old_password,
+        user.password_hash,
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Current password is incorrect"
+        )
+
+    user.password_hash = hash_password(
+        payload.new_password
+    )
+
+    db.commit()
+
+    return {
+        "message": "Password updated successfully"
+    }

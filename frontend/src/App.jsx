@@ -1,5 +1,5 @@
 import { Routes, Route } from "react-router-dom";
-
+import { useLocation } from "react-router-dom";
 import Header from "./components/Header";
 import ProtectedRoute from "./components/ProtectedRoute";
 
@@ -9,6 +9,7 @@ import ProductPage from "./pages/ProductPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import CartPage from "./pages/CartPage";
 import LoginPage from "./pages/LoginPage";
+import AdminLoginPage from "./pages/AdminLoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import WishlistPage from "./pages/WishlistPage";
 import CheckoutPage from "./pages/CheckoutPage";
@@ -16,6 +17,7 @@ import OrdersPage from "./pages/OrdersPage";
 import OrderDetailPage from "./pages/OrderDetailPage";
 import UserPage from "./pages/UserPage";
 import UserDetail from "./pages/UserDetail";
+import ProfilePage from "./pages/ProfilePage";
 
 // ADMIN
 import AdminLayout from "./components/admin/AdminLayout";
@@ -27,12 +29,16 @@ import CategoriesPage from "./pages/admin/CategoriesPage";
 import VoucherPage from "./pages/admin/VoucherPage";
 import OrdersManagementPage from "./pages/admin/OrdersPage";
 import ReviewsPage from "./pages/admin/ReviewsPage";
+import AdminRoute from "./components/AdminRoute";
 
 function App() {
+  const location = useLocation();
+
+  const isAdminPage = location.pathname.startsWith("/admin");
   return (
     <>
-      <Header title="ShopHub" />
-
+      {/* <Header title="ShopHub" /> */}
+      {!isAdminPage && <Header title="ShopHub" />}
       <Routes>
         {/* USER */}
 
@@ -45,7 +51,7 @@ function App() {
         <Route path="/cart" element={<CartPage />} />
 
         <Route path="/login" element={<LoginPage />} />
-
+        <Route path="/admin/login" element={<AdminLoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
 
         <Route path="/wishlist" element={<WishlistPage />} />
@@ -55,6 +61,15 @@ function App() {
         <Route path="/orders" element={<OrdersPage />} />
 
         <Route path="/orders/:id" element={<OrderDetailPage />} />
+
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
+        />
 
         <Route
           path="/users"
@@ -76,7 +91,14 @@ function App() {
 
         {/* ADMIN */}
 
-        <Route path="/admin" element={<AdminLayout />}>
+        <Route
+          path="/admin"
+          element={
+            <AdminRoute>
+              <AdminLayout />
+            </AdminRoute>
+          }
+        >
           <Route index element={<Dashboard />} />
 
           <Route path="users" element={<UsersPage />} />

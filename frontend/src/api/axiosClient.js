@@ -23,7 +23,9 @@ axiosClient.interceptors.request.use(
 axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.log("API Error:", error.response?.status, error.message);
+    if (error.response?.status !== 401) {
+      console.log("API Error:", error.response?.status, error.message);
+    }
 
     return Promise.reject(error);
   }

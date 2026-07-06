@@ -20,28 +20,36 @@ router = APIRouter(
 # ==========================
 # CALCULATE FLASH PRICE
 # ==========================
-from datetime import datetime
+from datetime import datetime, timezone
+
 def calculate_flash_price(product: ProductDB):
+    now = datetime.now(timezone.utc)
+
     if (
         product.is_flash_sale
         and product.flash_sale_percent > 0
         and product.flash_sale_start
         and product.flash_sale_end
-        and product.flash_sale_start
-        <= datetime.now(timezone.utc)
-        <= product.flash_sale_end
+        and product.flash_sale_start <= now <= product.flash_sale_end
     ):
-        return round(
-            product.price
-            - (
+        return (
+            True,
+            round(
                 product.price
-                * product.flash_sale_percent
-                / 100
+                - (
+                    product.price
+                    * product.flash_sale_percent
+                    / 100
+                ),
+                2,
             ),
-            2,
         )
 
-    return product.price
+    # Flash sale đã hết
+    return (
+        False,
+        product.price,
+    )
 
 
 # ==========================
@@ -57,23 +65,26 @@ def get_products(
     result = []
 
     for p in products:
+
+        active, flash_price = calculate_flash_price(p)
+
         result.append(
-            ProductRead(
-                id=p.id,
-                name=p.name,
-                price=p.price,
-                flash_price=calculate_flash_price(p),
-                category=p.category,
-                description=p.description,
-                imageUrl=p.image_path,
-                is_flash_sale=p.is_flash_sale,
-                flash_sale_percent=p.flash_sale_percent,
-                flash_sale_start=p.flash_sale_start,
-                flash_sale_end=p.flash_sale_end,
-                sold=p.sold,
-                stock=p.stock,
-            )
+        ProductRead(
+            id=p.id,
+            name=p.name,
+            price=p.price,
+            flash_price=flash_price,
+            category=p.category,
+            description=p.description,
+            imageUrl=p.image_path,
+            is_flash_sale=active,
+            flash_sale_percent=p.flash_sale_percent,
+            flash_sale_start=p.flash_sale_start,
+            flash_sale_end=p.flash_sale_end,
+            sold=p.sold,
+            stock=p.stock,
         )
+    )
 
     return result
 
@@ -101,16 +112,17 @@ def get_flash_sale_products(
     result = []
 
     for p in products:
+        active, flash_price = calculate_flash_price(p)
         result.append(
             ProductRead(
                 id=p.id,
                 name=p.name,
                 price=p.price,
-                flash_price=calculate_flash_price(p),
+                flash_price=flash_price,
                 category=p.category,
                 description=p.description,
                 imageUrl=p.image_path,
-                is_flash_sale=p.is_flash_sale,
+                is_flash_sale=active,
                 flash_sale_percent=p.flash_sale_percent,
                 flash_sale_start=p.flash_sale_start,
                 flash_sale_end=p.flash_sale_end,
@@ -141,16 +153,16 @@ def get_product(
             status_code=404,
             detail="Product not found",
         )
-
+    active, flash_price = calculate_flash_price(product)
     return ProductRead(
         id=product.id,
         name=product.name,
         price=product.price,
-        flash_price=calculate_flash_price(product),
+        flash_price=flash_price,
         category=product.category,
         description=product.description,
         imageUrl=product.image_path,
-        is_flash_sale=product.is_flash_sale,
+        is_flash_sale=active,
         flash_sale_percent=product.flash_sale_percent,
         flash_sale_start=product.flash_sale_start,
         flash_sale_end=product.flash_sale_end,
@@ -191,16 +203,16 @@ def create_product(
     db.add(product)
     db.commit()
     db.refresh(product)
-
+    active, flash_price = calculate_flash_price(product)
     return ProductRead(
         id=product.id,
         name=product.name,
         price=product.price,
-        flash_price=calculate_flash_price(product),
+        flash_price=flash_price,
         category=product.category,
         description=product.description,
         imageUrl=product.image_path,
-        is_flash_sale=product.is_flash_sale,
+        is_flash_sale=active,
         flash_sale_percent=product.flash_sale_percent,
         flash_sale_start=product.flash_sale_start,
         flash_sale_end=product.flash_sale_end,
@@ -271,16 +283,16 @@ def update_product(
 
     db.commit()
     db.refresh(product)
-
+    active, flash_price = calculate_flash_price(product)
     return ProductRead(
         id=product.id,
         name=product.name,
         price=product.price,
-        flash_price=calculate_flash_price(product),
+        flash_price=flash_price,
         category=product.category,
         description=product.description,
         imageUrl=product.image_path,
-        is_flash_sale=product.is_flash_sale,
+        is_flash_sale=active,
         flash_sale_percent=product.flash_sale_percent,
         flash_sale_start=product.flash_sale_start,
         flash_sale_end=product.flash_sale_end,

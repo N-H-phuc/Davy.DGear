@@ -23,7 +23,12 @@ export const ordersApi = {
     return res.data;
   },
 
-  remove: async (id) => {
+  delete: async (id) => {
     await axiosClient.delete(`/orders/${id}`);
+  },
+
+  getMyOrders: async () => {
+    const res = await axiosClient.get("/orders/my");
+    return res.data;
   },
 };

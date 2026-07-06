@@ -43,9 +43,9 @@ class ReviewDB(Base):
     )
 
     user = relationship(
-        "UserDB",
-        backref="reviews",
-    )
+    "UserDB",
+    back_populates="reviews",
+)
 
     product = relationship(
     "ProductDB",

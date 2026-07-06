@@ -12,11 +12,22 @@ export function OrderProvider({ children }) {
   // ==========================
 
   const loadOrders = async () => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setOrders([]);
+      return;
+    }
+
     try {
-      const data = await ordersApi.getAll();
+      const data = await ordersApi.getMyOrders();
       setOrders(data);
     } catch (err) {
-      console.log(err);
+      if (err.response?.status !== 401) {
+        console.log(err);
+      }
+
+      setOrders([]);
     }
   };
 

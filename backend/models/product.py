@@ -114,3 +114,9 @@ class ProductDB(Base):
         "OrderItemDB",
         back_populates="product",
     )
+
+    wishlist = relationship(
+    "WishlistDB",
+    back_populates="product",
+    cascade="all, delete-orphan",
+)

@@ -14,11 +14,60 @@ from schemas.order import (
     OrderItemRead,
 )
 
+from dependencies import get_current_user
+from models.user import UserDB
+
 router = APIRouter(
     prefix="/orders",
     tags=["Orders"],
 )
 
+# tk xem đc đơn hàng của mình thôi
+@router.get("/my", response_model=list[OrderRead])
+def get_my_orders(
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+
+    orders = (
+        db.query(OrderDB)
+        .filter(OrderDB.user_id == current_user.id)
+        .all()
+    )
+
+    result = []
+
+    for order in orders:
+
+        items = []
+
+        for item in order.items:
+
+            items.append(
+                OrderItemRead(
+                    id=item.id,
+                    product_id=item.product_id,
+                    quantity=item.quantity,
+                    price=item.price,
+                )
+            )
+
+        result.append(
+            OrderRead(
+                id=order.id,
+                user_id=order.user_id,
+                full_name=order.full_name,
+                phone=order.phone,
+                address=order.address,
+                payment_method=order.payment_method,
+                total_price=order.total_price,
+                status=order.status,
+                created_at=order.created_at,
+                items=items,
+            )
+        )
+
+    return result
 
 # ==========================
 # GET ALL ORDERS

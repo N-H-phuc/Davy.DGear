@@ -2,7 +2,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-
+from models.user import UserDB
 from database import get_db
 
 from models.product import ProductDB
@@ -67,14 +67,18 @@ def top_customers(
 ):
     result = (
         db.query(
-            OrderDB.user_id,
-            OrderDB.full_name,
+            UserDB.id.label("user_id"),
+            UserDB.full_name,
             func.count(OrderDB.id).label("orders"),
             func.sum(OrderDB.total_price).label("spent"),
         )
+        .join(
+            OrderDB,
+            UserDB.id == OrderDB.user_id,
+        )
         .group_by(
-            OrderDB.user_id,
-            OrderDB.full_name,
+            UserDB.id,
+            UserDB.full_name,
         )
         .order_by(
             func.sum(OrderDB.total_price).desc()
@@ -87,8 +91,8 @@ def top_customers(
         {
             "user_id": row.user_id,
             "full_name": row.full_name,
-            "orders": row.orders,
-            "spent": float(row.spent),
+            "orders": int(row.orders or 0),
+            "spent": float(row.spent or 0),
         }
         for row in result
     ]

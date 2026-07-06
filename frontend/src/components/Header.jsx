@@ -92,9 +92,12 @@ function Header({ title }) {
           </div>
         ) : (
           <div className="flex items-center gap-4">
-            {/* Avatar */}
+            {/* Avatar + Name */}
 
-            <div className="flex items-center gap-3">
+            <Link
+              to={user.role === "admin" ? "/admin" : "/profile"}
+              className="flex items-center gap-3 hover:bg-gray-100 rounded-xl px-3 py-2 transition"
+            >
               <div className="w-11 h-11 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-lg shadow">
                 {user.full_name?.charAt(0).toUpperCase()}
               </div>
@@ -104,20 +107,20 @@ function Header({ title }) {
 
                 <p className="text-xs text-gray-500 uppercase">{user.role}</p>
               </div>
-            </div>
+            </Link>
 
-            {/* Profile */}
+            {/* Customer Profile */}
 
             {user.role === "customer" && (
               <NavLink
-                to={`/users/${user.id}`}
+                to="/profile"
                 className="px-4 py-2 rounded-xl border border-blue-600 text-blue-600 hover:bg-blue-50 transition font-semibold"
               >
                 👤 Profile
               </NavLink>
             )}
 
-            {/* Admin */}
+            {/* Admin
 
             {user.role === "admin" && (
               <NavLink
@@ -126,7 +129,7 @@ function Header({ title }) {
               >
                 ⚙️ Dashboard
               </NavLink>
-            )}
+            )} */}
 
             {/* Logout */}
 

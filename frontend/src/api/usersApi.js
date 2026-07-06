@@ -76,4 +76,11 @@ export const usersApi = {
       throw error;
     }
   },
+
+  // profile
+  changePassword: async (id, data) => {
+    const res = await axiosClient.put(`/users/${id}/change-password`, data);
+
+    return res.data;
+  },
 };

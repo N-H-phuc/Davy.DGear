@@ -22,14 +22,20 @@ function LoginPage() {
         password,
       });
 
+      // Chặn Admin đăng nhập từ Customer Login
+      if (res.user.role === "admin") {
+        alert("Administrator accounts must login from the Admin Login page.");
+
+        return;
+      }
+
+      // Chỉ Customer mới lưu token
       localStorage.setItem("token", res.access_token);
       localStorage.setItem("user", JSON.stringify(res.user));
 
-      if (res.user.role === "admin") {
-        navigate("/admin");
-      } else {
-        navigate("/");
-      }
+      alert("Login successfully!");
+
+      navigate("/");
     } catch (err) {
       console.log(err);
 
@@ -38,7 +44,6 @@ function LoginPage() {
       setLoading(false);
     }
   };
-
   return (
     <section className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-gray-100 flex items-center justify-center px-6">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md p-10">

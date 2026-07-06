@@ -21,8 +21,23 @@ class UserDB(Base):
         server_default=func.now()
     )
 
+     # Orders
     orders = relationship(
         "OrderDB",
         back_populates="user",
-        cascade="all, delete",
-     )
+        cascade="all, delete-orphan",
+    )
+
+    # Wishlist
+    wishlist = relationship(
+        "WishlistDB",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
+
+    # Reviews
+    reviews = relationship(
+        "ReviewDB",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )

@@ -23,11 +23,11 @@ class WishlistDB(Base):
 
     # Relationship
     user = relationship(
-        "UserDB",
-        backref="wishlist"
-    )
+    "UserDB",
+    back_populates="wishlist",
+)
 
     product = relationship(
-        "ProductDB",
-        backref="wishlist"
-    )
+    "ProductDB",
+    back_populates="wishlist",
+)
