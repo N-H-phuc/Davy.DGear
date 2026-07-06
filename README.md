@@ -29,3 +29,5 @@ Session 7: Integrating React with APIs (Assignment)
 Session 8: PostgreSQL Integration (Products & Users)
 
 Session 9: Authentication (FastAPI + React)
+
+Session 10: Role-Based Authorization (ADMIN vs CUSTOMER)
