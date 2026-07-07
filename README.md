@@ -31,3 +31,5 @@ Session 8: PostgreSQL Integration (Products & Users)
 Session 9: Authentication (FastAPI + React)
 
 Session 10: Role-Based Authorization (ADMIN vs CUSTOMER)
+
+Session 11: Shopping Cart (React Context) và Phân trang ProductPape
