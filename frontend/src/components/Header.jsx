@@ -5,7 +5,8 @@ import { useWishlist } from "../context/WishlistContext";
 function Header({ title }) {
   const navigate = useNavigate();
 
-  const { cartItems } = useCart();
+  // const { cartItems } = useCart();
+  const { totalItems } = useCart();
   const { wishlistItems } = useWishlist();
 
   const user = JSON.parse(localStorage.getItem("user"));
@@ -33,7 +34,8 @@ function Header({ title }) {
       to: "/wishlist",
     },
     {
-      label: `🛒 Cart (${cartItems.length})`,
+      // label: `🛒 Cart (${cartItems.length})`,
+      label: `🛒 Cart (${totalItems})`,
       to: "/cart",
     },
   ];

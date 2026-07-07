@@ -2,9 +2,24 @@ import axiosClient from "./axiosClient";
 import { handleApiError } from "./errorHandler";
 
 export const productsApi = {
-  async getAll() {
+  async getAll(
+    page = 1,
+    limit = 8,
+    search = "",
+    category = "All",
+    sort = "none"
+  ) {
     try {
-      const response = await axiosClient.get("/products");
+      const response = await axiosClient.get("/products", {
+        params: {
+          page,
+          limit,
+          search,
+          category,
+          sort,
+        },
+      });
+
       return response.data;
     } catch (error) {
       handleApiError(error, "Failed to fetch products");

@@ -7,14 +7,23 @@ import ProductForm from "../../components/ProductForm";
 
 function ProductsPage() {
   const [products, setProducts] = useState([]);
+  const [page, setPage] = useState(1);
 
+  const [pageSize] = useState(8);
+
+  const [totalPages, setTotalPages] = useState(1);
+
+  const [totalItems, setTotalItems] = useState(0);
   const [filteredProducts, setFilteredProducts] = useState([]);
 
   const [categories, setCategories] = useState([]);
 
   const [loading, setLoading] = useState(true);
+  const [loadingTable, setLoadingTable] = useState(false);
 
   const [editingProduct, setEditingProduct] = useState(null);
+
+  const [keyword, setKeyword] = useState("");
 
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -26,21 +35,34 @@ function ProductsPage() {
   // GET PRODUCTS
   // ==========================
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (firstLoad = false) => {
     try {
-      setLoading(true);
+      if (firstLoad) {
+        setLoading(true);
+      } else {
+        setLoadingTable(true);
+      }
 
-      const data = await productsApi.getAll();
+      const data = await productsApi.getAll(
+        page,
+        pageSize,
+        searchTerm,
+        selectedCategory,
+        sortOption
+      );
 
-      const list = data.items || data || [];
-
-      setProducts(list);
-
-      setFilteredProducts(list);
+      setProducts(data.items);
+      setFilteredProducts(data.items);
+      setTotalPages(data.total_pages);
+      setTotalItems(data.total);
     } catch (err) {
       console.log(err);
     } finally {
-      setLoading(false);
+      if (firstLoad) {
+        setLoading(false);
+      } else {
+        setLoadingTable(false);
+      }
     }
   };
 
@@ -64,41 +86,34 @@ function ProductsPage() {
     }
   };
 
+  // useEffect(() => {
+  //   fetchProducts();
+  // }, [page, searchTerm, selectedCategory, sortOption]);
   useEffect(() => {
-    fetchProducts();
-
+    fetchProducts(true);
+  }, []);
+  useEffect(() => {
+    if (!loading) {
+      fetchProducts();
+    }
+  }, [page, searchTerm, selectedCategory, sortOption]);
+  useEffect(() => {
     fetchCategories();
   }, []);
 
+  // Thêm Debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchTerm(keyword);
+
+      setPage(1);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [keyword]);
   // ==========================
   // FILTER
   // ==========================
-
-  useEffect(() => {
-    let result = [...products];
-
-    if (searchTerm.trim()) {
-      result = result.filter((product) =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    if (selectedCategory !== "All") {
-      result = result.filter(
-        (product) => product.category === selectedCategory
-      );
-    }
-
-    if (sortOption === "price-asc") {
-      result.sort((a, b) => a.price - b.price);
-    }
-
-    if (sortOption === "price-desc") {
-      result.sort((a, b) => b.price - a.price);
-    }
-
-    setFilteredProducts(result);
-  }, [products, searchTerm, selectedCategory, sortOption]);
 
   // ==========================
   // EDIT
@@ -179,14 +194,17 @@ function ProductsPage() {
           <input
             type="text"
             placeholder="Search product..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
             className="border rounded-xl px-4 py-3"
           />
 
           <select
             value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
+            onChange={(e) => {
+              setSelectedCategory(e.target.value);
+              setPage(1);
+            }}
             className="border rounded-xl px-4 py-3"
           >
             {categories.map((category) => (
@@ -198,7 +216,10 @@ function ProductsPage() {
 
           <select
             value={sortOption}
-            onChange={(e) => setSortOption(e.target.value)}
+            onChange={(e) => {
+              setSortOption(e.target.value);
+              setPage(1);
+            }}
             className="border rounded-xl px-4 py-3"
           >
             <option value="none">Sort Price</option>
@@ -210,9 +231,11 @@ function ProductsPage() {
 
           <button
             onClick={() => {
+              setKeyword("");
               setSearchTerm("");
               setSelectedCategory("All");
               setSortOption("none");
+              setPage(1);
             }}
             className="bg-red-500 hover:bg-red-600 text-white rounded-xl"
           >
@@ -223,11 +246,16 @@ function ProductsPage() {
       {/* Product Table */}
 
       <div className="bg-white rounded-2xl shadow-md overflow-hidden">
+        {loadingTable && (
+          <div className="px-8 py-3 text-blue-600 font-medium">
+            Loading products...
+          </div>
+        )}
         <div className="px-8 py-6 border-b">
           <h2 className="text-2xl font-bold">Product List</h2>
 
           <p className="text-gray-500 mt-1">
-            Showing {filteredProducts.length} of {products.length} products
+            Showing {filteredProducts.length} of {totalItems} products
           </p>
         </div>
 
@@ -336,6 +364,40 @@ function ProductsPage() {
               )}
             </tbody>
           </table>
+        </div>
+        <div className="flex justify-center items-center gap-2 py-8">
+          {/* Previous */}
+          <button
+            disabled={page === 1}
+            onClick={() => setPage(page - 1)}
+            className="px-4 py-2 rounded-lg border disabled:opacity-40 hover:bg-gray-100"
+          >
+            ←
+          </button>
+
+          {/* Page Numbers */}
+          {Array.from({ length: totalPages }, (_, index) => (
+            <button
+              key={index + 1}
+              onClick={() => setPage(index + 1)}
+              className={`w-10 h-10 rounded-lg font-semibold transition ${
+                page === index + 1
+                  ? "bg-blue-600 text-white"
+                  : "border hover:bg-gray-100"
+              }`}
+            >
+              {index + 1}
+            </button>
+          ))}
+
+          {/* Next */}
+          <button
+            disabled={page === totalPages}
+            onClick={() => setPage(page + 1)}
+            className="px-4 py-2 rounded-lg border disabled:opacity-40 hover:bg-gray-100"
+          >
+            →
+          </button>
         </div>
       </div>
     </div>

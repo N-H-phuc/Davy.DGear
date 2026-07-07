@@ -55,12 +55,65 @@ def calculate_flash_price(product: ProductDB):
 # ==========================
 # GET ALL PRODUCTS
 # ==========================
+from typing import Optional
+from fastapi import Query
 
-@router.get("", response_model=list[ProductRead])
+@router.get("")
 def get_products(
+    page: int = Query(1, ge=1),
+    limit: int = Query(8, ge=1),
+
+    search: Optional[str] = None,
+    category: Optional[str] = None,
+    sort: Optional[str] = None,
+
     db: Session = Depends(get_db),
 ):
-    products = db.query(ProductDB).all()
+    query = db.query(ProductDB)
+
+# ======================
+# Search
+# ======================
+
+    if search:
+        query = query.filter(
+            ProductDB.name.ilike(f"%{search}%")
+    )
+
+# ======================
+# Category
+# ======================
+
+    if category and category != "All":
+        query = query.filter(
+            ProductDB.category == category
+    )
+
+# ======================
+# Sort
+# ======================
+
+    if sort == "price-asc":
+        query = query.order_by(ProductDB.price.asc())
+
+    elif sort == "price-desc":
+        query = query.order_by(ProductDB.price.desc())
+
+    else:
+        query = query.order_by(ProductDB.id.desc())
+
+# ======================
+# Pagination
+# ======================
+
+    total = query.count()
+
+    products = (
+        query
+        .offset((page - 1) * limit)
+        .limit(limit)
+        .all()
+)
 
     result = []
 
@@ -86,7 +139,13 @@ def get_products(
         )
     )
 
-    return result
+    return {
+    "items": result,
+    "page": page,
+    "limit": limit,
+    "total": total,
+    "total_pages": (total + limit - 1) // limit,
+}
 
 
 # ==========================

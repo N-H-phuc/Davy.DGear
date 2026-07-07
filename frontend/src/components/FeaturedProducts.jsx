@@ -10,9 +10,9 @@ function FeaturedProducts() {
 
   const fetchProducts = async () => {
     try {
-      const data = await productsApi.getAll();
+      const data = await productsApi.getAll(1, 8);
 
-      setProducts(data.slice(0, 8));
+      setProducts(data.items);
     } catch (err) {
       console.log(err);
     }

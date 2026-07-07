@@ -8,10 +8,17 @@ import ProductList from "../components/ProductList";
 function ProductPage() {
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
+  const [page, setPage] = useState(1);
 
+  const [pageSize] = useState(8);
+
+  const [totalPages, setTotalPages] = useState(1);
+
+  const [totalItems, setTotalItems] = useState(0);
   const [categories, setCategories] = useState([]);
-
+  const [keyword, setKeyword] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [loadingTable, setLoadingTable] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [sortOption, setSortOption] = useState("none");
 
@@ -22,20 +29,34 @@ function ProductPage() {
   // GET PRODUCTS
   // ==========================
 
-  const fetchProducts = async () => {
+  const fetchProducts = async (firstLoad = false) => {
     try {
-      setLoading(true);
+      if (firstLoad) {
+        setLoading(true);
+      } else {
+        setLoadingTable(true);
+      }
 
-      const data = await productsApi.getAll();
+      const data = await productsApi.getAll(
+        page,
+        pageSize,
+        searchTerm,
+        selectedCategory,
+        sortOption
+      );
 
-      const list = data.items || data || [];
-
-      setProducts(list);
-      setFilteredProducts(list);
+      setProducts(data.items);
+      setFilteredProducts(data.items);
+      setTotalPages(data.total_pages);
+      setTotalItems(data.total);
     } catch (err) {
       setError("Load products failed.");
     } finally {
-      setLoading(false);
+      if (firstLoad) {
+        setLoading(false);
+      } else {
+        setLoadingTable(false);
+      }
     }
   };
 
@@ -60,46 +81,33 @@ function ProductPage() {
   };
 
   useEffect(() => {
-    fetchProducts();
+    fetchProducts(true);
+  }, []);
+
+  useEffect(() => {
+    if (!loading) {
+      fetchProducts();
+    }
+  }, [page, searchTerm, selectedCategory, sortOption]);
+
+  useEffect(() => {
     fetchCategories();
   }, []);
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchTerm(keyword);
+      setPage(1);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [keyword]);
   // ==========================
   // FILTER
   // ==========================
-
   useEffect(() => {
-    let result = [...products];
-
-    if (searchTerm.trim() !== "") {
-      result = result.filter((product) =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    if (selectedCategory !== "All") {
-      result = result.filter(
-        (product) => product.category === selectedCategory
-      );
-    }
-
-    if (sortOption === "price-asc") {
-      result.sort((a, b) => a.price - b.price);
-    }
-
-    if (sortOption === "price-desc") {
-      result.sort((a, b) => b.price - a.price);
-    }
-
-    const category = searchParams.get("category");
-
-    if (category) {
-      setSelectedCategory(category);
-    }
-
-    setFilteredProducts(result);
-  }, [products, searchTerm, selectedCategory, sortOption, searchParams]);
-
+    setPage(1);
+  }, [searchTerm, selectedCategory, sortOption]);
   // ==========================
   // LOADING
   // ==========================
@@ -145,8 +153,8 @@ function ProductPage() {
           <input
             type="text"
             placeholder="🔍 Search product..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
             className="border rounded-lg px-4 py-3"
           />
 
@@ -177,6 +185,7 @@ function ProductPage() {
               setSearchTerm("");
               setSelectedCategory("All");
               setSortOption("none");
+              setPage(1);
             }}
             className="bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
           >
@@ -188,13 +197,50 @@ function ProductPage() {
       <div className="mb-6 text-gray-600 font-medium">
         Showing
         <span className="font-bold text-blue-600">
-          {" "}
           {filteredProducts.length}
         </span>
-        /{products.length} products
+        /{totalItems}
       </div>
-
+      {loadingTable && (
+        <div className="text-center py-3 text-blue-600 font-medium">
+          Loading products...
+        </div>
+      )}
       <ProductList products={filteredProducts} />
+      <div className="flex justify-center items-center gap-2 py-8">
+        {/* Previous */}
+        <button
+          disabled={page === 1}
+          onClick={() => setPage(page - 1)}
+          className="px-4 py-2 rounded-lg border disabled:opacity-40 hover:bg-gray-100"
+        >
+          ←
+        </button>
+
+        {/* Page Numbers */}
+        {Array.from({ length: totalPages }, (_, index) => (
+          <button
+            key={index + 1}
+            onClick={() => setPage(index + 1)}
+            className={`w-10 h-10 rounded-lg font-semibold transition ${
+              page === index + 1
+                ? "bg-blue-600 text-white"
+                : "border hover:bg-gray-100"
+            }`}
+          >
+            {index + 1}
+          </button>
+        ))}
+
+        {/* Next */}
+        <button
+          disabled={page === totalPages}
+          onClick={() => setPage(page + 1)}
+          className="px-4 py-2 rounded-lg border disabled:opacity-40 hover:bg-gray-100"
+        >
+          →
+        </button>
+      </div>
     </div>
   );
 }
