@@ -193,6 +193,46 @@ def get_flash_sale_products(
     return result
 
 # ==========================
+# BEST SELLERS
+# ==========================
+
+@router.get("/best-sellers", response_model=list[ProductRead])
+def get_best_sellers(
+    db: Session = Depends(get_db),
+):
+    products = (
+        db.query(ProductDB)
+        .order_by(ProductDB.sold.desc())
+        .limit(8)
+        .all()
+    )
+
+    result = []
+
+    for p in products:
+        active, flash_price = calculate_flash_price(p)
+
+        result.append(
+            ProductRead(
+                id=p.id,
+                name=p.name,
+                price=p.price,
+                flash_price=flash_price,
+                category=p.category,
+                description=p.description,
+                imageUrl=p.image_path,
+                is_flash_sale=active,
+                flash_sale_percent=p.flash_sale_percent,
+                flash_sale_start=p.flash_sale_start,
+                flash_sale_end=p.flash_sale_end,
+                sold=p.sold,
+                stock=p.stock,
+            )
+        )
+
+    return result
+    
+# ==========================
 # GET PRODUCT BY ID
 # ==========================
 

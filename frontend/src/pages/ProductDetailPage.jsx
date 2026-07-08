@@ -8,6 +8,7 @@ import { reviewApi } from "../api/reviewApi";
 import { useReview } from "../context/ReviewContext";
 import ReviewForm from "../components/ReviewForm";
 import ReviewList from "../components/ReviewList";
+import RelatedProducts from "../components/RelatedProducts";
 
 function ProductDetailPage() {
   const { id } = useParams();
@@ -237,6 +238,8 @@ function ProductDetailPage() {
           </div>
         </div>
       </div>
+      <RelatedProducts currentProduct={product} />
+
       <ReviewForm
         productId={Number(id)}
         editingReview={editingReview}
@@ -248,6 +251,7 @@ function ProductDetailPage() {
         editingReview={editingReview}
         setEditingReview={setEditingReview}
       />
+      {/* <RelatedProducts currentProduct={product} /> */}
     </section>
   );
 }

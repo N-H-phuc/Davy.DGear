@@ -75,4 +75,14 @@ export const productsApi = {
       throw error;
     }
   },
+
+  async getBestSellers() {
+    try {
+      const response = await axiosClient.get("/products/best-sellers");
+      return response.data;
+    } catch (error) {
+      handleApiError(error, "Failed to fetch best sellers");
+      throw error;
+    }
+  },
 };

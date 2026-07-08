@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { productsApi } from "../api/productsApi";
 import { useNavigate } from "react-router-dom";
+import FlashSaleCountdown from "./FlashSaleCountdown";
 
 function FlashSaleSection() {
   const [products, setProducts] = useState([]);
@@ -72,14 +73,16 @@ function FlashSaleSection() {
   }
   return (
     <section className="max-w-7xl mx-auto px-6 py-16">
-      <div className="flex items-center justify-between mb-10">
+      <div className="flex justify-between items-center mb-8">
         <div>
-          <h2 className="text-4xl font-bold text-red-600">🔥 Flash Sale</h2>
+          <h2 className="text-4xl font-bold text-red-600">⚡ Flash Sale</h2>
 
-          <p className="text-gray-500 mt-2">
-            Limited-time offers with huge discounts
-          </p>
+          <p className="text-gray-500 mt-2">Limited time offers</p>
         </div>
+
+        {products.length > 0 && (
+          <FlashSaleCountdown endTime={products[0].flash_sale_end} />
+        )}
       </div>
 
       <div className="grid lg:grid-cols-4 md:grid-cols-2 gap-8">
