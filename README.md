@@ -10,6 +10,10 @@ Nguyễn Võ Minh Trí - 2200007402
 
 Lê Bảo Quân - 2200007072
 
+git commit -m "minhfi" là của N-H-phuc nha
+
+em đặt nhầm tên ạ
+
 Nội Dung Bài Học:
 
 Session 1: Project Initialization
