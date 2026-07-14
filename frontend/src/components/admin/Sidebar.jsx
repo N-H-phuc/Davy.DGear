@@ -32,6 +32,11 @@ const menus = [
     icon: "🛒",
   },
   {
+    title: "Payments",
+    path: "/admin/payments",
+    icon: "💳",
+  },
+  {
     title: "Reviews",
     path: "/admin/reviews",
     icon: "⭐",

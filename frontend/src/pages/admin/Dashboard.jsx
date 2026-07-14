@@ -118,7 +118,7 @@ function Dashboard() {
       setStats({
         totalUsers: data.users.length,
 
-        totalProducts: data.products.length,
+        totalProducts: data.products.total,
 
         totalOrders: data.orders.length,
 
@@ -400,6 +400,10 @@ function Dashboard() {
 
           <button className="bg-orange-600 hover:bg-orange-700 text-white py-4 rounded-xl font-semibold transition">
             🛒 Orders
+          </button>
+
+          <button className="bg-indigo-500 hover:bg-fuchsia-500 transition">
+            💳 Payment
           </button>
         </div>
       </div>

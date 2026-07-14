@@ -5,21 +5,23 @@ const axiosClient = axios.create({
   timeout: 10000,
 });
 
-// Tự động thêm token vào Header
-axiosClient.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("token");
+// Thêm token vào Header
+axiosClient.interceptors.request.use((config) => {
+  const isAdminApi =
+    config.url?.startsWith("/admin") || config.url?.includes("/admin");
 
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+  const token = isAdminApi
+    ? localStorage.getItem("adminToken")
+    : localStorage.getItem("customerToken");
 
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
 
-// Log lỗi
+  return config;
+});
+
+// Xử lý lỗi
 axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {

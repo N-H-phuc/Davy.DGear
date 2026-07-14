@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { useOrders } from "../context/OrderContext";
 import { voucherApi } from "../api/voucherApi";
+import { paymentsApi } from "../api/paymentApi";
 
 function CheckoutPage() {
   const navigate = useNavigate();
@@ -71,6 +72,7 @@ function CheckoutPage() {
     }
   };
 
+  // customer không sửa giá được
   const handleCheckout = async () => {
     if (cartItems.length === 0) {
       alert("Cart is empty");
@@ -79,8 +81,6 @@ function CheckoutPage() {
 
     try {
       const order = {
-        user_id: user.id,
-
         full_name: form.full_name,
 
         phone: form.phone,
@@ -89,16 +89,26 @@ function CheckoutPage() {
 
         payment_method: form.payment_method,
 
-        total_price: finalPrice,
-
         items: cartItems.map((item) => ({
           product_id: item.id,
           quantity: item.quantity,
-          price: item.flash_price ?? item.price,
         })),
       };
 
-      await createOrder(order);
+      const createdOrder = await createOrder(order);
+
+      if (form.payment_method === "Stripe") {
+        await paymentsApi.create({
+          order_id: createdOrder.id,
+          payment_method: "stripe",
+        });
+
+        const session = await paymentsApi.createStripeSession(createdOrder.id);
+
+        window.location.href = session.url;
+
+        return;
+      }
 
       clearCart();
 
@@ -156,6 +166,8 @@ function CheckoutPage() {
             <option value="Banking">Banking</option>
 
             <option value="Momo">Momo</option>
+
+            <option value="Stripe">Stripe</option>
           </select>
         </div>
 

@@ -35,8 +35,8 @@ function AdminLoginPage() {
         return;
       }
 
-      localStorage.setItem("token", res.access_token);
-      localStorage.setItem("user", JSON.stringify(res.user));
+      localStorage.setItem("adminToken", res.access_token);
+      localStorage.setItem("adminUser", JSON.stringify(res.user));
 
       alert("Admin login successfully!");
 

@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from datetime import datetime
-
+from zoneinfo import ZoneInfo
 from database import Base
 
 
@@ -38,9 +38,11 @@ class ReviewDB(Base):
     )
 
     created_at = Column(
-        DateTime,
-        default=datetime.utcnow,
-    )
+    DateTime(timezone=True),
+    default=lambda: datetime.now(
+        ZoneInfo("Asia/Ho_Chi_Minh")
+    ),
+)
 
     user = relationship(
     "UserDB",

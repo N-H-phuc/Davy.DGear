@@ -1,7 +1,7 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-
+import config
 import os
 import shutil
 
@@ -16,6 +16,7 @@ from models.review import Base as ReviewBase
 from models.order import Base as OrderBase
 from models.order_item import Base as OrderItemBase
 from models.voucher import VoucherDB
+from models.payment import PaymentDB
 
 # Routers
 from routers.products import router as product_router
@@ -27,6 +28,7 @@ from routers.review import router as review_router
 from routers.orders import router as order_router
 from routers.voucher import router as voucher_router
 from routers.dashboard import router as dashboard_router
+from routers.payment import router as payment_router
 
 # ==========================
 # CREATE APP
@@ -67,6 +69,7 @@ ReviewBase.metadata.create_all(bind=engine)
 OrderBase.metadata.create_all(bind=engine)
 OrderItemBase.metadata.create_all(bind=engine)
 VoucherDB.metadata.create_all(bind=engine)
+PaymentDB.metadata.create_all(bind=engine)
 
 # ==========================
 # CORS
@@ -97,6 +100,7 @@ app.include_router(review_router)
 app.include_router(order_router)
 app.include_router(voucher_router)
 app.include_router(dashboard_router)
+app.include_router(payment_router)
 # ==========================
 # UPLOAD IMAGE
 # ==========================

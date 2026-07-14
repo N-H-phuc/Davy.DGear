@@ -3,11 +3,11 @@ import { useNavigate } from "react-router-dom";
 function AdminHeader() {
   const navigate = useNavigate();
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem("adminUser"));
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("adminUser");
 
     navigate("/login");
   };

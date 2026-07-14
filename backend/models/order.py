@@ -8,7 +8,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from datetime import datetime
-
+from zoneinfo import ZoneInfo
 from database import Base
 
 
@@ -58,9 +58,12 @@ class OrderDB(Base):
     )
 
     created_at = Column(
-        DateTime,
-        default=datetime.utcnow,
-    )
+    DateTime(timezone=True),
+    default=lambda: datetime.now(
+        ZoneInfo("Asia/Ho_Chi_Minh")
+    ),
+)
+
 
     user = relationship(
         "UserDB",
@@ -72,3 +75,10 @@ class OrderDB(Base):
         back_populates="order",
         cascade="all, delete",
     )
+
+    payment = relationship(
+    "PaymentDB",
+    back_populates="order",
+    uselist=False,
+    cascade="all, delete-orphan",
+)

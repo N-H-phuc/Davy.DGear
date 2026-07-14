@@ -4,6 +4,7 @@ from sqlalchemy import String
 from sqlalchemy import Float
 from sqlalchemy import Text
 from sqlalchemy import DateTime
+from zoneinfo import ZoneInfo
 from sqlalchemy import Boolean
 from sqlalchemy.sql import func
 

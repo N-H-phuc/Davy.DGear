@@ -1,8 +1,6 @@
-
 from pydantic import BaseModel
 from typing import List
 from datetime import datetime
-
 
 # ==========================
 # ORDER ITEM
@@ -11,7 +9,6 @@ from datetime import datetime
 class OrderItemCreate(BaseModel):
     product_id: int
     quantity: int
-    price: float
 
 
 class OrderItemRead(BaseModel):
@@ -29,17 +26,10 @@ class OrderItemRead(BaseModel):
 # ==========================
 
 class OrderCreate(BaseModel):
-    user_id: int
-
     full_name: str
-
     phone: str
-
     address: str
-
     payment_method: str
-
-    total_price: float
 
     items: List[OrderItemCreate]
 
@@ -50,25 +40,19 @@ class OrderCreate(BaseModel):
 
 class OrderRead(BaseModel):
     id: int
-
     user_id: int
 
     full_name: str
-
     phone: str
-
     address: str
 
     payment_method: str
 
     total_price: float
-
     status: str
-
     created_at: datetime
 
     items: List[OrderItemRead]
 
     class Config:
         from_attributes = True
-

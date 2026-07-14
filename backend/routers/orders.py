@@ -30,10 +30,11 @@ def get_my_orders(
 ):
 
     orders = (
-        db.query(OrderDB)
-        .filter(OrderDB.user_id == current_user.id)
-        .all()
-    )
+    db.query(OrderDB)
+    .filter(OrderDB.user_id == current_user.id)
+    .order_by(OrderDB.created_at.desc())
+    .all()
+)
 
     result = []
 
@@ -81,7 +82,11 @@ def get_orders(
     db: Session = Depends(get_db),
 ):
 
-    orders = db.query(OrderDB).all()
+    orders = (
+    db.query(OrderDB)
+    .order_by(OrderDB.created_at.desc())
+    .all()
+)
 
     result = []
 
@@ -181,23 +186,13 @@ def get_order(
 )
 def create_order(
     payload: OrderCreate,
+    current_user: UserDB = Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
+    total_price = 0
 
-    order = OrderDB(
-        user_id=payload.user_id,
-        full_name=payload.full_name,
-        phone=payload.phone,
-        address=payload.address,
-        payment_method=payload.payment_method,
-        total_price=payload.total_price,
-    )
-
-    db.add(order)
-    db.commit()
-    db.refresh(order)
-
-    items = []
+    # Kiểm tra sản phẩm và tính tổng tiền
+    products = []
 
     for item in payload.items:
 
@@ -213,38 +208,68 @@ def create_order(
                 detail=f"Product {item.product_id} not found",
             )
 
-        # Kiểm tra tồn kho
         if product.stock < item.quantity:
             raise HTTPException(
                 status_code=400,
                 detail=f"{product.name} only has {product.stock} item(s) left in stock.",
             )
 
-        # Lưu OrderItem
+        # Lấy giá từ database
+        price = product.price
+
+        total_price += price * item.quantity
+
+        products.append(
+            {
+                "product": product,
+                "quantity": item.quantity,
+                "price": price,
+            }
+        )
+
+    # Tạo Order
+    order = OrderDB(
+        user_id=current_user.id,
+        full_name=payload.full_name,
+        phone=payload.phone,
+        address=payload.address,
+        payment_method=payload.payment_method,
+        total_price=total_price,
+    )
+
+    db.add(order)
+    db.flush()
+
+    # Tạo Order Items
+    for item in products:
+
         order_item = OrderItemDB(
             order_id=order.id,
-            product_id=item.product_id,
-            quantity=item.quantity,
-            price=item.price,
+            product_id=item["product"].id,
+            quantity=item["quantity"],
+            price=item["price"],
         )
 
         db.add(order_item)
 
-        # Cập nhật Sold và Stock
-        product.sold += item.quantity
-        product.stock -= item.quantity
+        # Cập nhật tồn kho
+        item["product"].stock -= item["quantity"]
+        item["product"].sold += item["quantity"]
 
+    db.commit()
+    db.refresh(order)
+
+    items = []
+
+    for item in order.items:
         items.append(
             OrderItemRead(
-                id=0,
+                id=item.id,
                 product_id=item.product_id,
                 quantity=item.quantity,
                 price=item.price,
             )
         )
-
-    db.commit()
-    db.refresh(order)
 
     return OrderRead(
         id=order.id,
@@ -258,7 +283,6 @@ def create_order(
         created_at=order.created_at,
         items=items,
     )
-
 
 # ==========================
 # UPDATE ORDER STATUS

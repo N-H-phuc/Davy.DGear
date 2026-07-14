@@ -8,23 +8,29 @@ import ProductList from "../components/ProductList";
 function ProductPage() {
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
-  const [page, setPage] = useState(1);
 
+  const [page, setPage] = useState(1);
   const [pageSize] = useState(8);
 
   const [totalPages, setTotalPages] = useState(1);
-
   const [totalItems, setTotalItems] = useState(0);
+
   const [categories, setCategories] = useState([]);
+
   const [keyword, setKeyword] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [loadingTable, setLoadingTable] = useState(false);
+
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [sortOption, setSortOption] = useState("none");
 
   const [loading, setLoading] = useState(true);
+  const [loadingTable, setLoadingTable] = useState(false);
   const [error, setError] = useState("");
+
   const [searchParams] = useSearchParams();
+
+  const categoryFromUrl = searchParams.get("category");
+
   // ==========================
   // GET PRODUCTS
   // ==========================
@@ -37,11 +43,13 @@ function ProductPage() {
         setLoadingTable(true);
       }
 
+      const category = categoryFromUrl || selectedCategory;
+
       const data = await productsApi.getAll(
         page,
         pageSize,
         searchTerm,
-        selectedCategory,
+        category,
         sortOption
       );
 
@@ -50,6 +58,7 @@ function ProductPage() {
       setTotalPages(data.total_pages);
       setTotalItems(data.total);
     } catch (err) {
+      console.log(err);
       setError("Load products failed.");
     } finally {
       if (firstLoad) {
@@ -80,19 +89,24 @@ function ProductPage() {
     }
   };
 
-  useEffect(() => {
-    fetchProducts(true);
-  }, []);
-
-  useEffect(() => {
-    if (!loading) {
-      fetchProducts();
-    }
-  }, [page, searchTerm, selectedCategory, sortOption]);
+  // Load categories
 
   useEffect(() => {
     fetchCategories();
   }, []);
+
+  // Đọc category từ URL
+
+  useEffect(() => {
+    if (categoryFromUrl) {
+      setSelectedCategory(categoryFromUrl);
+      setPage(1);
+    } else {
+      setSelectedCategory("All");
+    }
+  }, [categoryFromUrl]);
+
+  // Debounce search
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -102,12 +116,26 @@ function ProductPage() {
 
     return () => clearTimeout(timer);
   }, [keyword]);
-  // ==========================
-  // FILTER
-  // ==========================
+
+  // Load lần đầu
+
+  useEffect(() => {
+    fetchProducts(true);
+  }, []);
+
+  // Load lại khi filter thay đổi
+
+  useEffect(() => {
+    if (!loading) {
+      fetchProducts();
+    }
+  }, [page, searchTerm, selectedCategory, sortOption, categoryFromUrl]);
+
+  // Reset page
+
   useEffect(() => {
     setPage(1);
-  }, [searchTerm, selectedCategory, sortOption]);
+  }, [searchTerm, selectedCategory, sortOption, categoryFromUrl]);
   // ==========================
   // LOADING
   // ==========================

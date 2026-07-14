@@ -18,7 +18,8 @@ import OrderDetailPage from "./pages/OrderDetailPage";
 import UserPage from "./pages/UserPage";
 import UserDetail from "./pages/UserDetail";
 import ProfilePage from "./pages/ProfilePage";
-
+import PaymentSuccessPage from "./pages/PaymentSuccessPage";
+import PaymentCancelPage from "./pages/PaymentCancelPage";
 // ADMIN
 import AdminLayout from "./components/admin/AdminLayout";
 
@@ -30,6 +31,7 @@ import VoucherPage from "./pages/admin/VoucherPage";
 import OrdersManagementPage from "./pages/admin/OrdersPage";
 import ReviewsPage from "./pages/admin/ReviewsPage";
 import AdminRoute from "./components/AdminRoute";
+import AdminPaymentsPage from "./pages/admin/AdminPaymentsPage";
 
 function App() {
   const location = useLocation();
@@ -61,7 +63,12 @@ function App() {
         <Route path="/orders" element={<OrdersPage />} />
 
         <Route path="/orders/:id" element={<OrderDetailPage />} />
+        <Route
+          path="/payment/stripe/success"
+          element={<PaymentSuccessPage />}
+        />
 
+        <Route path="/payment/stripe/cancel" element={<PaymentCancelPage />} />
         <Route
           path="/profile"
           element={
@@ -110,6 +117,8 @@ function App() {
           <Route path="vouchers" element={<VoucherPage />} />
 
           <Route path="orders" element={<OrdersManagementPage />} />
+
+          <Route path="/admin/payments" element={<AdminPaymentsPage />} />
 
           <Route path="reviews" element={<ReviewsPage />} />
         </Route>

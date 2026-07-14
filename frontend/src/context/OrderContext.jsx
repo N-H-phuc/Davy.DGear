@@ -12,7 +12,7 @@ export function OrderProvider({ children }) {
   // ==========================
 
   const loadOrders = async () => {
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("customerToken");
 
     if (!token) {
       setOrders([]);
@@ -58,7 +58,7 @@ export function OrderProvider({ children }) {
 
   const deleteOrder = async (id) => {
     try {
-      await ordersApi.remove(id);
+      await ordersApi.delete(id);
 
       loadOrders();
     } catch (err) {

@@ -30,8 +30,8 @@ function LoginPage() {
       }
 
       // Chỉ Customer mới lưu token
-      localStorage.setItem("token", res.access_token);
-      localStorage.setItem("user", JSON.stringify(res.user));
+      localStorage.setItem("customerToken", res.access_token);
+      localStorage.setItem("customerUser", JSON.stringify(res.user));
 
       alert("Login successfully!");
 
