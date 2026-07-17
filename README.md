@@ -3,15 +3,19 @@ Nhóm: Davy.D
 Thành Viên:
 
 Nguyễn Hoàng Phúc - 2200011240 (Leader)
+
 Đóng Góp: 100%
 
 Nguyễn Hoàng Thái - 2200006748
+
 Đóng Góp: 95%
 
 Nguyễn Võ Minh Trí - 2200007402
+
 Đóng Góp: 95%
 
 Lê Bảo Quân - 2200007072
+
 Đóng Góp: 95%
 
 git commit -m "minhfi" là của N-H-phuc nha
