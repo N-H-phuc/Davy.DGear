@@ -5,7 +5,7 @@ import { useReview } from "../context/ReviewContext";
 function ReviewForm({ productId, editingReview, setEditingReview }) {
   const { addReview, updateReview } = useReview();
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem("customerUser") || "null");
 
   const [rating, setRating] = useState(5);
 

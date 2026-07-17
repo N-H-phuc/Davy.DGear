@@ -9,7 +9,7 @@ function Header({ title }) {
   const { totalItems } = useCart();
   const { wishlistItems } = useWishlist();
 
-  const user = JSON.parse(localStorage.getItem("customerUser"));
+  const user = JSON.parse(localStorage.getItem("customerUser") || "null");
 
   const handleLogout = () => {
     localStorage.removeItem("customerToken");

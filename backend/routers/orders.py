@@ -3,7 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
 from database import get_db
-
+from datetime import datetime
+from zoneinfo import ZoneInfo
 from models.order import OrderDB
 from models.order_item import OrderItemDB
 from models.product import ProductDB
@@ -13,7 +14,7 @@ from schemas.order import (
     OrderRead,
     OrderItemRead,
 )
-
+# import random
 from dependencies import get_current_user
 from models.user import UserDB
 
@@ -55,21 +56,168 @@ def get_my_orders(
 
         result.append(
             OrderRead(
-                id=order.id,
-                user_id=order.user_id,
-                full_name=order.full_name,
-                phone=order.phone,
-                address=order.address,
-                payment_method=order.payment_method,
-                total_price=order.total_price,
-                status=order.status,
-                created_at=order.created_at,
-                items=items,
-            )
+    id=order.id,
+    user_id=order.user_id,
+
+    full_name=order.full_name,
+    phone=order.phone,
+    address=order.address,
+
+    payment_method=order.payment_method,
+
+    total_price=order.total_price,
+    status=order.status,
+
+    shipper_id=order.shipper_id,
+    shipper_name=order.shipper_name,
+
+    accepted_at=order.accepted_at,
+    pickup_at=order.pickup_at,
+    shipping_at=order.shipping_at,
+    delivered_at=order.delivered_at,
+    failed_at=order.failed_at,
+
+    delivery_note=order.delivery_note,
+    failure_reason=order.failure_reason,
+
+    proof_image=order.proof_image,
+    otp_code=order.otp_code,
+
+    delivery_fee=order.delivery_fee,
+
+    created_at=order.created_at,
+    updated_at=order.updated_at,
+
+    items=items,
+)
         )
 
     return result
 
+@router.get("/shipping", response_model=list[OrderRead])
+def get_shipping_orders(
+    db: Session = Depends(get_db),
+):
+    orders = (
+        db.query(OrderDB)
+        .order_by(OrderDB.created_at.desc())
+        .all()
+    )
+
+    result = []
+
+    for order in orders:
+        items = []
+
+        for item in order.items:
+            items.append(
+                OrderItemRead(
+                    id=item.id,
+                    product_id=item.product_id,
+                    quantity=item.quantity,
+                    price=item.price,
+                )
+            )
+
+        result.append(
+            OrderRead(
+    id=order.id,
+    user_id=order.user_id,
+
+    full_name=order.full_name,
+    phone=order.phone,
+    address=order.address,
+
+    payment_method=order.payment_method,
+
+    total_price=order.total_price,
+    status=order.status,
+
+    shipper_id=order.shipper_id,
+    shipper_name=order.shipper_name,
+
+    accepted_at=order.accepted_at,
+    pickup_at=order.pickup_at,
+    shipping_at=order.shipping_at,
+    delivered_at=order.delivered_at,
+    failed_at=order.failed_at,
+
+    delivery_note=order.delivery_note,
+    failure_reason=order.failure_reason,
+
+    proof_image=order.proof_image,
+    otp_code=order.otp_code,
+
+    delivery_fee=order.delivery_fee,
+
+    created_at=order.created_at,
+    updated_at=order.updated_at,
+
+    items=items,
+)
+        )
+
+    return result
+
+@router.put("/assign-shipper/{order_id}")
+def assign_shipper(
+    order_id: int,
+    shipper_id: int,
+    current_user: UserDB = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    # print("ID:", current_user.id)
+    # print("EMAIL:", current_user.email)
+    # print("ROLE:", current_user.role)
+    # Chỉ admin mới được gán
+    if current_user.role != "admin":
+        raise HTTPException(
+            status_code=403,
+            detail="Permission denied",
+        )
+
+    order = (
+        db.query(OrderDB)
+        .filter(OrderDB.id == order_id)
+        .first()
+    )
+
+    if not order:
+        raise HTTPException(
+            status_code=404,
+            detail="Order not found",
+        )
+
+    shipper = (
+        db.query(UserDB)
+        .filter(
+            UserDB.id == shipper_id,
+            UserDB.role == "shipper",
+        )
+        .first()
+    )
+
+    if not shipper:
+        raise HTTPException(
+            status_code=404,
+            detail="Shipper not found",
+        )
+
+    order.shipper_id = shipper.id
+    order.shipper_name = shipper.full_name
+
+    order.status = "WaitingPickup"
+
+    order.accepted_at = datetime.now(
+        ZoneInfo("Asia/Ho_Chi_Minh")
+    )
+
+    db.commit()
+    db.refresh(order)
+
+    return {
+        "message": "Assign shipper successfully"
+    }
 # ==========================
 # GET ALL ORDERS
 # ==========================
@@ -107,17 +255,40 @@ def get_orders(
 
         result.append(
             OrderRead(
-                id=order.id,
-                user_id=order.user_id,
-                full_name=order.full_name,
-                phone=order.phone,
-                address=order.address,
-                payment_method=order.payment_method,
-                total_price=order.total_price,
-                status=order.status,
-                created_at=order.created_at,
-                items=items,
-            )
+    id=order.id,
+    user_id=order.user_id,
+
+    full_name=order.full_name,
+    phone=order.phone,
+    address=order.address,
+
+    payment_method=order.payment_method,
+
+    total_price=order.total_price,
+    status=order.status,
+
+    shipper_id=order.shipper_id,
+    shipper_name=order.shipper_name,
+
+    accepted_at=order.accepted_at,
+    pickup_at=order.pickup_at,
+    shipping_at=order.shipping_at,
+    delivered_at=order.delivered_at,
+    failed_at=order.failed_at,
+
+    delivery_note=order.delivery_note,
+    failure_reason=order.failure_reason,
+
+    proof_image=order.proof_image,
+    otp_code=order.otp_code,
+
+    delivery_fee=order.delivery_fee,
+
+    created_at=order.created_at,
+    updated_at=order.updated_at,
+
+    items=items,
+)
         )
 
     return result
@@ -162,17 +333,43 @@ def get_order(
         )
 
     return OrderRead(
-        id=order.id,
-        user_id=order.user_id,
-        full_name=order.full_name,
-        phone=order.phone,
-        address=order.address,
-        payment_method=order.payment_method,
-        total_price=order.total_price,
-        status=order.status,
-        created_at=order.created_at,
-        items=items,
-    )
+    id=order.id,
+    user_id=order.user_id,
+
+    full_name=order.full_name,
+    phone=order.phone,
+    address=order.address,
+
+    payment_method=order.payment_method,
+
+    total_price=order.total_price,
+    status=order.status,
+
+    shipper_id=order.shipper_id,
+    shipper_name=order.shipper_name,
+
+    accepted_at=order.accepted_at,
+    pickup_at=order.pickup_at,
+    shipping_at=order.shipping_at,
+    delivered_at=order.delivered_at,
+    failed_at=order.failed_at,
+
+    delivery_note=order.delivery_note,
+    failure_reason=order.failure_reason,
+
+    proof_image=order.proof_image,
+    otp_code=order.otp_code,
+
+    delivery_fee=order.delivery_fee,
+
+    created_at=order.created_at,
+    updated_at=order.updated_at,
+
+    items=items,
+)
+
+
+
 
 
 # ==========================
@@ -226,8 +423,8 @@ def create_order(
                 "price": price,
             }
         )
-
-    # Tạo Order
+    # otp = str(random.randint(100000, 999999))
+    delivery_fee = max(5, total_price * 0.05)
     order = OrderDB(
         user_id=current_user.id,
         full_name=payload.full_name,
@@ -235,6 +432,11 @@ def create_order(
         address=payload.address,
         payment_method=payload.payment_method,
         total_price=total_price,
+        status="Pending",
+        shipper_id=None,
+        shipper_name=None,
+        # otp_code=otp,
+        delivery_fee=delivery_fee,
     )
 
     db.add(order)
@@ -272,17 +474,40 @@ def create_order(
         )
 
     return OrderRead(
-        id=order.id,
-        user_id=order.user_id,
-        full_name=order.full_name,
-        phone=order.phone,
-        address=order.address,
-        payment_method=order.payment_method,
-        total_price=order.total_price,
-        status=order.status,
-        created_at=order.created_at,
-        items=items,
-    )
+    id=order.id,
+    user_id=order.user_id,
+
+    full_name=order.full_name,
+    phone=order.phone,
+    address=order.address,
+
+    payment_method=order.payment_method,
+
+    total_price=order.total_price,
+    status=order.status,
+
+    shipper_id=order.shipper_id,
+    shipper_name=order.shipper_name,
+
+    accepted_at=order.accepted_at,
+    pickup_at=order.pickup_at,
+    shipping_at=order.shipping_at,
+    delivered_at=order.delivered_at,
+    failed_at=order.failed_at,
+
+    delivery_note=order.delivery_note,
+    failure_reason=order.failure_reason,
+
+    proof_image=order.proof_image,
+    otp_code=order.otp_code,
+
+    delivery_fee=order.delivery_fee,
+
+    created_at=order.created_at,
+    updated_at=order.updated_at,
+
+    items=items,
+)
 
 # ==========================
 # UPDATE ORDER STATUS

@@ -7,7 +7,7 @@ const WishlistContext = createContext();
 export function WishlistProvider({ children }) {
   const [wishlistItems, setWishlistItems] = useState([]);
 
-  const user = JSON.parse(localStorage.getItem("user"));
+  const user = JSON.parse(localStorage.getItem("customerUser") || "null");
 
   const loadWishlist = async () => {
     try {

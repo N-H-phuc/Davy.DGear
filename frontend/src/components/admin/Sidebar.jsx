@@ -12,6 +12,11 @@ const menus = [
     icon: "👤",
   },
   {
+    title: "Shippers",
+    path: "/admin/shippers",
+    icon: "🚚",
+  },
+  {
     title: "Products",
     path: "/admin/products",
     icon: "📦",

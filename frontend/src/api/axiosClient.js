@@ -6,9 +6,26 @@ const axiosClient = axios.create({
 });
 
 // Thêm token vào Header
+// axiosClient.interceptors.request.use((config) => {
+//   const isAdminApi =
+//     config.url?.startsWith("/admin") || config.url?.includes("/admin");
+
+//   const token = isAdminApi
+//     ? localStorage.getItem("adminToken")
+//     : localStorage.getItem("customerToken");
+
+//   if (token) {
+//     config.headers.Authorization = `Bearer ${token}`;
+//   }
+
+//   return config;
+// });
+
 axiosClient.interceptors.request.use((config) => {
   const isAdminApi =
-    config.url?.startsWith("/admin") || config.url?.includes("/admin");
+    config.url?.startsWith("/admin") ||
+    config.url?.includes("/admin") ||
+    config.url?.includes("/orders/assign-shipper");
 
   const token = isAdminApi
     ? localStorage.getItem("adminToken")

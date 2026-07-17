@@ -20,6 +20,15 @@ import UserDetail from "./pages/UserDetail";
 import ProfilePage from "./pages/ProfilePage";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 import PaymentCancelPage from "./pages/PaymentCancelPage";
+import ShipperLoginPage from "./pages/ShipperLoginPage";
+import ShipperRoute from "./components/ShipperRoute";
+import ShipperLayout from "./components/shipper/ShipperLayout";
+
+import ShipperDashboard from "./pages/shipper/ShipperDashboard";
+import ShipperOrdersPage from "./pages/shipper/ShipperOrdersPage";
+import ShipperHistoryPage from "./pages/shipper/ShipperHistoryPage";
+import ShipperProfilePage from "./pages/shipper/ShipperProfilePage";
+import ShipperOrderDetailPage from "./pages/shipper/ShipperOrderDetailPage";
 // ADMIN
 import AdminLayout from "./components/admin/AdminLayout";
 
@@ -32,20 +41,22 @@ import OrdersManagementPage from "./pages/admin/OrdersPage";
 import ReviewsPage from "./pages/admin/ReviewsPage";
 import AdminRoute from "./components/AdminRoute";
 import AdminPaymentsPage from "./pages/admin/AdminPaymentsPage";
-
+import AdminShippersPage from "./pages/admin/AdminShippersPage";
 function App() {
   const location = useLocation();
 
-  const isAdminPage = location.pathname.startsWith("/admin");
+  const isAdminPage =
+    location.pathname.startsWith("/admin") ||
+    location.pathname.startsWith("/shipper");
+
   return (
     <>
-      {/* <Header title="ShopHub" /> */}
-      {!isAdminPage && <Header title="ShopHub" />}
+      {!isAdminPage && <Header title="Davy.DGear" />}
       <Routes>
         {/* USER */}
 
         <Route path="/" element={<HomePage />} />
-
+        <Route path="shippers" element={<AdminShippersPage />} />
         <Route path="/products" element={<ProductPage />} />
 
         <Route path="/products/:id" element={<ProductDetailPage />} />
@@ -121,6 +132,33 @@ function App() {
           <Route path="/admin/payments" element={<AdminPaymentsPage />} />
 
           <Route path="reviews" element={<ReviewsPage />} />
+        </Route>
+
+        {/* //shipper */}
+        <Route path="/shipper/login" element={<ShipperLoginPage />} />
+
+        <Route
+          path="/shipper"
+          element={
+            <ShipperRoute>
+              <ShipperLayout />
+            </ShipperRoute>
+          }
+        >
+          {/* Dashboard */}
+          <Route index element={<ShipperDashboard />} />
+
+          {/* Đơn của shipper */}
+          <Route path="orders" element={<ShipperOrdersPage />} />
+
+          {/* Chi tiết đơn */}
+          <Route path="orders/:id" element={<ShipperOrderDetailPage />} />
+
+          {/* Lịch sử */}
+          <Route path="history" element={<ShipperHistoryPage />} />
+
+          {/* Hồ sơ */}
+          <Route path="profile" element={<ShipperProfilePage />} />
         </Route>
 
         {/* 404 */}

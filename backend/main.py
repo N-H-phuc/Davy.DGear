@@ -1,13 +1,15 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-import config
+
 import os
 import shutil
 
 from database import engine
 
-# Models
+# ==========================
+# MODELS
+# ==========================
 from models.product import Base as ProductBase
 from models.user import Base as UserBase
 from models.category import Base as CategoryBase
@@ -18,7 +20,9 @@ from models.order_item import Base as OrderItemBase
 from models.voucher import VoucherDB
 from models.payment import PaymentDB
 
-# Routers
+# ==========================
+# ROUTERS
+# ==========================
 from routers.products import router as product_router
 from routers.users import router as user_router
 from routers.auth import router as auth_router
@@ -29,22 +33,25 @@ from routers.orders import router as order_router
 from routers.voucher import router as voucher_router
 from routers.dashboard import router as dashboard_router
 from routers.payment import router as payment_router
+from routers.shipper import router as shipper_router
 
 # ==========================
 # CREATE APP
 # ==========================
-
 app = FastAPI(
     title="ShopHub API",
-    version="2.0.0",
+    version="2.1.0",
 )
 
 # ==========================
-# STATIC IMAGE FOLDER
+# CREATE FOLDERS
 # ==========================
-
 os.makedirs("uploads", exist_ok=True)
+os.makedirs("images", exist_ok=True)
 
+# ==========================
+# STATIC FILES
+# ==========================
 app.mount(
     "/images",
     StaticFiles(directory="images"),
@@ -60,7 +67,6 @@ app.mount(
 # ==========================
 # CREATE DATABASE TABLES
 # ==========================
-
 ProductBase.metadata.create_all(bind=engine)
 UserBase.metadata.create_all(bind=engine)
 CategoryBase.metadata.create_all(bind=engine)
@@ -74,7 +80,6 @@ PaymentDB.metadata.create_all(bind=engine)
 # ==========================
 # CORS
 # ==========================
-
 origins = [
     "http://localhost:5173",
 ]
@@ -88,52 +93,66 @@ app.add_middleware(
 )
 
 # ==========================
-# ROUTERS
+# INCLUDE ROUTERS
 # ==========================
-
-app.include_router(product_router)
-app.include_router(user_router)
 app.include_router(auth_router)
+app.include_router(user_router)
+app.include_router(product_router)
 app.include_router(category_router)
 app.include_router(wishlist_router)
 app.include_router(review_router)
 app.include_router(order_router)
 app.include_router(voucher_router)
-app.include_router(dashboard_router)
 app.include_router(payment_router)
+app.include_router(dashboard_router)
+
+# Shipper
+app.include_router(shipper_router)
+
 # ==========================
 # UPLOAD IMAGE
 # ==========================
-
 @app.post("/upload")
 async def upload_image(image: UploadFile = File(...)):
-    file_path = f"uploads/{image.filename}"
+    filename = image.filename
+    file_path = os.path.join("uploads", filename)
 
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(image.file, buffer)
 
     return {
-        "imageUrl": f"/uploads/{image.filename}"
+        "success": True,
+        "imageUrl": f"/uploads/{filename}",
     }
 
 # ==========================
 # ROOT
 # ==========================
-
 @app.get("/")
 def root():
     return {
-        "message": "Welcome to ShopHub PostgreSQL API"
+        "message": "Welcome to ShopHub API",
+        "version": "2.1.0",
     }
 
 # ==========================
 # ABOUT
 # ==========================
-
 @app.get("/about")
 def about():
     return {
         "project": "ShopHub",
+        "backend": "FastAPI",
         "database": "PostgreSQL",
-        "version": "2.0.0",
+        "version": "2.1.0",
+    }
+
+# ==========================
+# HEALTH CHECK
+# ==========================
+@app.get("/health")
+def health():
+    return {
+        "status": "OK",
+        "database": "Connected",
     }

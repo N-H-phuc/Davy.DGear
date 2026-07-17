@@ -31,4 +31,17 @@ export const ordersApi = {
     const res = await axiosClient.get("/orders/my");
     return res.data;
   },
+  assignShipper: async (orderId, shipperId) => {
+    const res = await axiosClient.put(
+      `/orders/assign-shipper/${orderId}`,
+      null,
+      {
+        params: {
+          shipper_id: shipperId,
+        },
+      }
+    );
+
+    return res.data;
+  },
 };

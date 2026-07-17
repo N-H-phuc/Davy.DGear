@@ -52,7 +52,19 @@ function OrdersPage() {
                 {order.status}
               </span>
             </div>
+            {order.status === "Shipping" && (
+              <div className="bg-yellow-100 rounded-lg p-4 mt-5">
+                <h3 className="font-bold">Mã OTP nhận hàng</h3>
 
+                <p className="text-3xl font-bold text-red-600 mt-2">
+                  {order.otp_code}
+                </p>
+
+                <p className="text-sm text-gray-600 mt-2">
+                  Chỉ cung cấp mã này cho shipper khi đã nhận hàng.
+                </p>
+              </div>
+            )}
             <div className="mt-6 space-y-3">
               {order.items.map((item) => (
                 <div

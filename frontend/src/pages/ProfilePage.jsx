@@ -4,7 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { ordersApi } from "../api/ordersApi";
 
 function ProfilePage() {
-  const currentUser = JSON.parse(localStorage.getItem("user"));
+  const currentUser = JSON.parse(
+    localStorage.getItem("customerUser") || "null"
+  );
 
   const [user, setUser] = useState(null);
   const navigate = useNavigate();

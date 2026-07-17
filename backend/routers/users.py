@@ -11,6 +11,12 @@ from schemas.user import (
     UserRead,
 )
 
+from schemas.user import (
+    ShipperCreate,
+    ShipperUpdate,
+    ShipperRead,
+)
+
 from utils.security import hash_password
 
 
@@ -40,6 +46,154 @@ def get_users(
         for user in users
     ]
 
+# ==========================
+# GET ALL SHIPPERS
+# ==========================
+
+@router.get("/shippers", response_model=list[ShipperRead])
+def get_shippers(
+    db: Session = Depends(get_db),
+):
+    shippers = (
+        db.query(UserDB)
+        .filter(UserDB.role == "shipper")
+        .all()
+    )
+
+    return [
+        ShipperRead(
+            id=shipper.id,
+            email=shipper.email,
+            full_name=shipper.full_name,
+            role=shipper.role,
+        )
+        for shipper in shippers
+    ]
+
+# ==========================
+# CREATE SHIPPER
+# ==========================
+
+@router.post(
+    "/shippers",
+    response_model=ShipperRead,
+    status_code=status.HTTP_201_CREATED,
+)
+def create_shipper(
+    payload: ShipperCreate,
+    db: Session = Depends(get_db),
+):
+
+    exists = (
+        db.query(UserDB)
+        .filter(UserDB.email == payload.email)
+        .first()
+    )
+
+    if exists:
+        raise HTTPException(
+            status_code=400,
+            detail="Email already exists",
+        )
+
+    shipper = UserDB(
+        email=payload.email,
+        full_name=payload.full_name,
+        password_hash=hash_password(payload.password),
+        role="shipper",
+    )
+
+    db.add(shipper)
+    db.commit()
+    db.refresh(shipper)
+
+    return ShipperRead(
+        id=shipper.id,
+        email=shipper.email,
+        full_name=shipper.full_name,
+        role=shipper.role,
+    )
+
+# ==========================
+# UPDATE SHIPPER
+# ==========================
+
+@router.put(
+    "/shippers/{shipper_id}",
+    response_model=ShipperRead,
+)
+def update_shipper(
+    shipper_id: int,
+    payload: ShipperUpdate,
+    db: Session = Depends(get_db),
+):
+
+    shipper = (
+        db.query(UserDB)
+        .filter(
+            UserDB.id == shipper_id,
+            UserDB.role == "shipper",
+        )
+        .first()
+    )
+
+    if not shipper:
+        raise HTTPException(
+            status_code=404,
+            detail="Shipper not found",
+        )
+
+    if payload.email:
+        shipper.email = payload.email
+
+    if payload.full_name:
+        shipper.full_name = payload.full_name
+
+    if payload.password:
+        shipper.password_hash = hash_password(
+            payload.password
+        )
+
+    db.commit()
+    db.refresh(shipper)
+
+    return ShipperRead(
+        id=shipper.id,
+        email=shipper.email,
+        full_name=shipper.full_name,
+        role=shipper.role,
+    )
+
+# ==========================
+# DELETE SHIPPER
+# ==========================
+
+@router.delete(
+    "/shippers/{shipper_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_shipper(
+    shipper_id: int,
+    db: Session = Depends(get_db),
+):
+
+    shipper = (
+        db.query(UserDB)
+        .filter(
+            UserDB.id == shipper_id,
+            UserDB.role == "shipper",
+        )
+        .first()
+    )
+
+    if not shipper:
+        raise HTTPException(
+            status_code=404,
+            detail="Shipper not found",
+        )
+
+    db.delete(shipper)
+    db.commit()
 
 # ==========================
 # GET USER BY ID
@@ -271,3 +425,4 @@ def change_password(
     return {
         "message": "Password updated successfully"
     }
+

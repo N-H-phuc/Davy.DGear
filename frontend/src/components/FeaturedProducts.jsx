@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { productsApi } from "../api/productsApi";
-
+import { Link } from "react-router-dom";
 function FeaturedProducts() {
   const [products, setProducts] = useState([]);
 
@@ -59,9 +59,12 @@ function FeaturedProducts() {
                     ${product.price}
                   </span>
 
-                  <button className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg">
+                  <Link
+                    to={`/products/${product.id}`}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg"
+                  >
                     View
-                  </button>
+                  </Link>
                 </div>
               </div>
             </div>

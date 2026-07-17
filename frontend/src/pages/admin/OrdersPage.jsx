@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { ordersApi } from "../../api/ordersApi";
-
+import { shipperAdminApi } from "../../api/shipperAdminApi";
 function OrdersPage() {
   const [orders, setOrders] = useState([]);
 
@@ -10,7 +10,8 @@ function OrdersPage() {
   const [loading, setLoading] = useState(true);
 
   const [selectedOrder, setSelectedOrder] = useState(null);
-
+  const [shippers, setShippers] = useState([]);
+  const [assignShipper, setAssignShipper] = useState({});
   const [selectedStatus, setSelectedStatus] = useState("All");
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -37,6 +38,7 @@ function OrdersPage() {
 
   useEffect(() => {
     fetchOrders();
+    loadShippers();
   }, []);
 
   // ==========================
@@ -93,6 +95,32 @@ function OrdersPage() {
     }
   };
 
+  const loadShippers = async () => {
+    try {
+      const data = await shipperAdminApi.getAll();
+      setShippers(data);
+    } catch (err) {
+      console.log(err);
+    }
+  };
+  const assignOrder = async (orderId) => {
+    const shipperId = assignShipper[orderId];
+
+    if (!shipperId) {
+      alert("Please select shipper");
+      return;
+    }
+
+    try {
+      await ordersApi.assignShipper(orderId, shipperId);
+
+      alert("Assigned successfully");
+
+      fetchOrders();
+    } catch (err) {
+      console.log(err);
+    }
+  };
   // ==========================
   // LOADING
   // ==========================
@@ -220,7 +248,7 @@ function OrdersPage() {
                 <th className="px-6 py-4">Status</th>
 
                 <th className="px-6 py-4">Date</th>
-
+                <th className="px-6 py-4">Shipper</th>
                 <th className="px-6 py-4 text-center">Actions</th>
               </tr>
             </thead>
@@ -267,7 +295,41 @@ function OrdersPage() {
                   <td className="px-6 py-4">
                     {new Date(order.created_at).toLocaleDateString()}
                   </td>
+                  <td className="px-6 py-4">
+                    {order.shipper_name ? (
+                      <span className="text-green-600 font-semibold">
+                        {order.shipper_name}
+                      </span>
+                    ) : (
+                      <div className="flex gap-2">
+                        <select
+                          className="border rounded px-2 py-1"
+                          value={assignShipper[order.id] || ""}
+                          onChange={(e) =>
+                            setAssignShipper({
+                              ...assignShipper,
+                              [order.id]: e.target.value,
+                            })
+                          }
+                        >
+                          <option value="">Select</option>
 
+                          {shippers.map((shipper) => (
+                            <option key={shipper.id} value={shipper.id}>
+                              {shipper.full_name}
+                            </option>
+                          ))}
+                        </select>
+
+                        <button
+                          onClick={() => assignOrder(order.id)}
+                          className="bg-blue-600 text-white px-3 rounded"
+                        >
+                          Assign
+                        </button>
+                      </div>
+                    )}
+                  </td>
                   <td className="px-6 py-4">
                     <div className="flex gap-2 justify-center">
                       <button
@@ -293,7 +355,7 @@ function OrdersPage() {
 
               {filteredOrders.length === 0 && (
                 <tr>
-                  <td colSpan="8" className="text-center py-16 text-gray-500">
+                  <td colSpan="9" className="text-center py-16 text-gray-500">
                     No orders found.
                   </td>
                 </tr>

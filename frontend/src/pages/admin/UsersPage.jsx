@@ -182,9 +182,11 @@ function UsersPage() {
                 onChange={handleChange}
                 className="w-full border p-3 rounded-lg"
               >
-                <option value="user">User</option>
+                <option value="customer">customer</option>
 
                 <option value="admin">Admin</option>
+
+                <option value="shipper">shipper</option>
               </select>
 
               <div className="flex justify-end gap-3 pt-4">
